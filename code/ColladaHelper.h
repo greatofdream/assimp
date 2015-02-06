@@ -66,6 +66,17 @@ enum TransformType
 	TF_MATRIX
 };
 
+
+/** G4DAE : Extra Optical Element types */
+enum ExtraOpticalType
+{
+	EO_OPTICALSURFACE,
+	EO_SKINSURFACE,
+	EO_BORDERSURFACE
+};
+
+
+
 /** Different types of input data to a vertex or face */
 enum InputType
 {
@@ -392,11 +403,44 @@ struct Controller
 	std::vector< std::pair<size_t, size_t> > mWeights;
 };
 
+
+
+
+struct ExtraProperties
+{
+	///< Map of property names to data references
+	std::map<std::string, std::string> mProperties;
+};
+
+
+struct OpticalSurface 
+{
+    std::string mName ; 
+
+    int mFinish ;
+
+    int mModel ;
+
+    int mType ;
+
+    float mValue ;
+ 
+    ExtraProperties* mExtra ;  
+};
+
+
 /** A collada material. Pretty much the only member is a reference to an effect. */
 struct Material
 {
+    Material()
+    {
+        mExtra = 0 ; 
+    }
+
 	std::string mEffect;
+    ExtraProperties* mExtra ;  
 };
+
 
 /** Type of the effect param */
 enum ParamType

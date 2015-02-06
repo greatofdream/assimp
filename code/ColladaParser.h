@@ -45,6 +45,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AI_COLLADAPARSER_H_INC
 #define AI_COLLADAPARSER_H_INC
 
+#define G4DAE_EXTRAS
+
 #include "irrXMLWrapper.h"
 #include "ColladaHelper.h"
 
@@ -198,6 +200,7 @@ protected:
 	/** Reads a scene node's contents including children and stores it in the given node */
 	void ReadSceneNode( Collada::Node* pNode);
 
+
 	/** Reads a node transformation entry of the given type and adds it to the given node's transformation list. */
 	void ReadNodeTransformation( Collada::Node* pNode, Collada::TransformType pType);
 
@@ -209,6 +212,27 @@ protected:
 
 	// Processes bind_vertex_input and bind elements
 	void ReadMaterialVertexInputBinding( Collada::SemanticMappingTable& tbl);
+
+#ifdef G4DAE_EXTRAS
+public:
+
+    /** read library_nodes/extra element */
+    void ReadExtraSceneNode();
+
+    /** reads extra elements details optical surface properties **/ 
+    void ReadExtraOptical( Collada::ExtraOpticalType pType );
+
+    /** populates OpticalSurface instances **/
+    void ReadExtraOpticalSurface(Collada::OpticalSurface& pSurface);
+
+	/** Reads extra "matrix" elements and "property" elements that refer to the matrix data **/ 
+    void ReadExtraProperties(Collada::ExtraProperties& pExtra, const char* element);
+
+    /** Reads matrix data **/
+    void ReadExtraMatrix();
+
+#endif
+
 
 protected:
 	/** Aborts the file reading with an exception */
@@ -308,6 +332,15 @@ protected:
 	/** Controller library: joint controllers by ID */
 	typedef std::map<std::string, Collada::Controller> ControllerLibrary;
 	ControllerLibrary mControllerLibrary;
+
+#ifdef G4DAE_EXTRAS
+
+	/** OpticalSurface library: OpticalSurface by name */
+	typedef std::map<std::string, Collada::OpticalSurface> OpticalSurfaceLibrary;
+	OpticalSurfaceLibrary mOpticalSurfaceLibrary;
+
+#endif
+
 
 	/** Pointer to the root node. Don't delete, it just points to one of 
 	    the nodes in the node library. */

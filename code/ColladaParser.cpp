@@ -113,6 +113,7 @@ void ColladaParser::ReadContents()
 {
 	while( mReader->read())
 	{
+		DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadContents <%s>.") % mReader->getNodeName()));
 		// handle the root element "COLLADA"
 		if( mReader->getNodeType() == irr::io::EXN_ELEMENT)
 		{
@@ -156,6 +157,7 @@ void ColladaParser::ReadStructure()
 {
 	while( mReader->read())
 	{
+		DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadStructure <%s>.") % mReader->getNodeName()));
 		// beginning of elements
 		if( mReader->getNodeType() == irr::io::EXN_ELEMENT) 
 		{
@@ -918,6 +920,74 @@ void ColladaParser::ReadCameraLibrary()
 	}
 }
 
+
+
+void ColladaParser::ReadExtraMatrix()
+{
+	int nameAtt = GetAttribute("name");
+	std::string name = mReader->getAttributeValue(nameAtt);
+
+	const char* content = TestTextContent();
+
+    mDataLibrary[name] = Data();
+    Data& data = mDataLibrary[name];
+    data.mIsStringArray = false ;
+
+    if (content) 
+    { 
+        data.mValues.reserve(30);
+        while(*content)
+        {
+            float value;
+		    content = fast_atoreal_move<float>( content, value);
+		    data.mValues.push_back( value);
+		    SkipSpacesAndLineEnd( &content);
+	    }
+    }
+
+    unsigned int size = data.mValues.size();
+	DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadExtraMatrix <%s> <%d> .") % name % size ));
+    TestClosing("matrix");
+}
+
+
+void ColladaParser::ReadExtraProperties( Collada::ExtraProperties& pExtra, const char* element )
+{
+	DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadExtraProperties <%s>.") % element ));
+
+	while( mReader->read())
+	{
+		if( mReader->getNodeType() == irr::io::EXN_ELEMENT) 
+        {
+		    if (IsElement("matrix")) 
+            {
+                ReadExtraMatrix();
+            }
+			else if( IsElement( "property"))
+	        {
+                int nameAtt = GetAttribute("name");
+                int refAtt = GetAttribute("ref");
+                if( nameAtt == -1 || refAtt == -1 ) continue ; 
+
+                std::string name = mReader->getAttributeValue(nameAtt);
+                std::string ref = mReader->getAttributeValue(refAtt);
+
+                pExtra.mProperties[name] = ref ; 
+            }
+            else
+            {
+                SkipElement();
+            }
+		}
+		else if( mReader->getNodeType() == irr::io::EXN_ELEMENT_END) {
+			if( strcmp( mReader->getNodeName(), element) != 0)
+				ThrowException( "Expected end of element.");
+			break;
+		}
+	}
+}
+
+
 // ------------------------------------------------------------------------------------------------
 // Reads a material entry into the given material
 void ColladaParser::ReadMaterial( Collada::Material& pMaterial)
@@ -939,7 +1009,15 @@ void ColladaParser::ReadMaterial( Collada::Material& pMaterial)
 				pMaterial.mEffect = url+1;
 
 				SkipElement();
-			} else
+			} 
+			else if( IsElement( "extra"))
+            {
+                if(!pMaterial.mExtra )
+                     pMaterial.mExtra = new Collada::ExtraProperties();
+
+                ReadExtraProperties( *pMaterial.mExtra , "extra" );
+            }
+            else
 			{
 				// ignore the rest
 				SkipElement();
@@ -2350,6 +2428,138 @@ void ColladaParser::ReadSceneLibrary()
 	}
 }
 
+
+
+
+
+
+
+
+
+void ColladaParser::ReadExtraSceneNode()
+{
+	DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadExtraSceneNode START <%s>.") % mReader->getNodeName()));
+	while( mReader->read())
+	{
+		if( mReader->getNodeType() == irr::io::EXN_ELEMENT)
+		{
+            if( IsElement("opticalsurface"))
+            {
+				int nameAtt = GetAttribute("name");
+				std::string name = mReader->getAttributeValue(nameAtt);
+
+				// create an entry and store it in the library under its ID
+				ReadExtraOpticalSurface(mOpticalSurfaceLibrary[name] = OpticalSurface());
+				continue;
+            }     
+            else if( IsElement("skinsurface"))     
+            {
+                ReadExtraOptical(EO_SKINSURFACE) ;  
+				continue;
+            }
+            else if( IsElement("bordersurface"))  
+            {
+                ReadExtraOptical(EO_BORDERSURFACE) ;  
+				continue;
+            }
+            else
+            {
+				SkipElement();
+            }
+        }	
+		else if( mReader->getNodeType() == irr::io::EXN_ELEMENT_END)
+		{
+			if( strcmp( mReader->getNodeName(), "extra") != 0)
+				ThrowException( "Expected end of extra element.");
+
+			break;
+		}
+	}
+}
+
+
+
+void ColladaParser::ReadExtraOpticalSurface(Collada::OpticalSurface& pSurface)
+{
+	int nameAtt = TestAttribute("name");
+	if (-1 != nameAtt) 
+	    pSurface.mName = mReader->getAttributeValue(nameAtt);
+
+	int finishAtt = TestAttribute("finish");
+	if (-1 != finishAtt) 
+	    pSurface.mFinish = mReader->getAttributeValueAsInt(finishAtt);
+
+	int modelAtt = TestAttribute("model");
+	if (-1 != modelAtt) 
+	    pSurface.mModel = mReader->getAttributeValueAsInt(modelAtt);
+
+	int typeAtt = TestAttribute("type");
+	if (-1 != typeAtt) 
+	    pSurface.mType = mReader->getAttributeValueAsInt(typeAtt);
+
+	int valueAtt = TestAttribute("value");
+	if (-1 != valueAtt) 
+	    pSurface.mValue = mReader->getAttributeValueAsFloat(valueAtt);
+
+    ReadExtraProperties(*pSurface.mExtra, "opticalsurface");
+}
+
+
+
+void ColladaParser::ReadExtraOptical( ExtraOpticalType pType )
+{
+	DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadExtraOptical START <%s>.") % mReader->getNodeName()));
+    const char* element ; 
+    switch( pType )
+    {
+       case EO_OPTICALSURFACE: element = "opticalsurface" ; break ;
+       case EO_SKINSURFACE:    element = "skinsurface"    ; break ;
+       case EO_BORDERSURFACE:  element = "bordersurface"  ; break ; 
+    }
+
+	if( mReader->isEmptyElement())
+		return;
+
+
+	int attrId = TestAttribute("name");
+	if (-1 != attrId) 
+	{
+	    const char* s = mReader->getAttributeValue(attrId);
+	    DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadExtraOptical <%s>.") % s ));
+	}
+
+
+	while( mReader->read())
+	{
+		DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadExtraOptical <%s>.") % mReader->getNodeName()));
+		if( mReader->getNodeType() == irr::io::EXN_ELEMENT)
+		{
+			if( IsElement( "volumeref") && pType == EO_SKINSURFACE )
+            {
+				SkipElement();
+            }
+			else if( IsElement( "physvolref") && pType == EO_BORDERSURFACE )
+            {
+				SkipElement();
+            }
+            else
+			{
+		        DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadExtraOptical SKIP <%s>.") % mReader->getNodeName()));
+				SkipElement();
+			}
+		} 
+		else if( mReader->getNodeType() == irr::io::EXN_ELEMENT_END)
+		{
+			if( strcmp( mReader->getNodeName(), element) != 0)
+				ThrowException( "Expected end of element.");
+
+			break;
+		}
+	}
+}
+
+
+
 // ------------------------------------------------------------------------------------------------
 // Reads a scene node's contents including children and stores it in the given node
 void ColladaParser::ReadSceneNode( Node* pNode)
@@ -2360,6 +2570,7 @@ void ColladaParser::ReadSceneNode( Node* pNode)
 
 	while( mReader->read())
 	{
+		//DefaultLogger::get()->debug( boost::str( boost::format( "ColladaParser::ReadSceneNode <%s>.") % mReader->getNodeName()));
 		if( mReader->getNodeType() == irr::io::EXN_ELEMENT) 
 		{
 			if( IsElement( "node"))
@@ -2395,12 +2606,19 @@ void ColladaParser::ReadSceneNode( Node* pNode)
 				ReadSceneNode( child);
 				continue;
 			}
+            else if( IsElement("extra")) 
+            { 
+                ReadExtraSceneNode() ;  
+				continue;
+            }
+
 			// For any further stuff we need a valid node to work on
 			else if (!pNode)
 				continue;
 
 			if( IsElement( "lookat"))
 				ReadNodeTransformation( pNode, TF_LOOKAT);
+
 			else if( IsElement( "matrix"))
 				ReadNodeTransformation( pNode, TF_MATRIX);
 			else if( IsElement( "rotate"))
