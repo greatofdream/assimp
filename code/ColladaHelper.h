@@ -405,11 +405,23 @@ struct Controller
 
 
 
+#ifdef G4DAE_EXTRAS
+
 
 struct ExtraProperties
 {
 	///< Map of property names to data references
-	std::map<std::string, std::string> mProperties;
+	typedef std::map<std::string, std::string> ExtraPropertiesMap ;
+    ExtraPropertiesMap mProperties;
+    void Summary()
+    {
+       printf("ExtraProperties::Summary\n");
+       for(ExtraPropertiesMap::iterator it=mProperties.begin() ; it != mProperties.end() ; it++ )
+       {
+          printf(" %s : %s \n", it->first.c_str(), it->second.c_str() );
+       }
+    }
+
 };
 
 
@@ -426,19 +438,86 @@ struct OpticalSurface
     float mValue ;
  
     ExtraProperties* mExtra ;  
+
+    void Summary()
+    {
+        printf("OpticalSurface::Summary %s %d %d %d %10.3f 0x%p \n", 
+               mName.c_str(), 
+               mFinish, 
+               mModel, 
+               mType, 
+               mValue, 
+               mExtra);
+         if(mExtra) mExtra->Summary();
+    }
+
+
 };
+
+
+struct SkinSurface 
+{
+    std::string mName ; 
+
+    std::string mOpticalSurfaceName  ;
+
+    std::string mVolume ; 
+ 
+    OpticalSurface* mOpticalSurface ; 
+
+    void Summary()
+    {
+        printf("SkinSurface::Summary\n n   %s\n osn %s\n v    %s\n os  0x%p \n", 
+               mName.c_str(), 
+               mOpticalSurfaceName.c_str(), 
+               mVolume.c_str(), 
+               mOpticalSurface);
+        if(mOpticalSurface) mOpticalSurface->Summary();
+    }
+    
+};
+
+struct BorderSurface 
+{
+    std::string mName ; 
+
+    std::string mOpticalSurfaceName  ;
+
+    std::string mPhysVolume1 ; 
+
+    std::string mPhysVolume2 ; 
+
+    OpticalSurface* mOpticalSurface ; 
+
+    void Summary()
+    {
+        printf("BorderSurface::Summary\n nam %s\n osn %s\n pv1 %s\n pv2 %s\n osp 0x%p \n", 
+               mName.c_str(), 
+               mOpticalSurfaceName.c_str(), 
+               mPhysVolume1.c_str(), 
+               mPhysVolume2.c_str(), 
+               mOpticalSurface);
+        if(mOpticalSurface) mOpticalSurface->Summary();
+    }
+    
+
+};
+
+#endif
+
 
 
 /** A collada material. Pretty much the only member is a reference to an effect. */
 struct Material
 {
+	std::string mEffect;
+#ifdef G4DAE_EXTRAS
     Material()
     {
         mExtra = 0 ; 
     }
-
-	std::string mEffect;
     ExtraProperties* mExtra ;  
+#endif
 };
 
 

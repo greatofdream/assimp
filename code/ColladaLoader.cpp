@@ -193,6 +193,13 @@ void ColladaLoader::InternReadFile( const std::string& pFile, aiScene* pScene, I
 	StoreAnimations( pScene, parser);
 
 
+#ifdef G4DAE_EXTRAS
+    // store extra optical surface info
+    StoreSceneExtras( pScene, parser );
+#endif
+
+
+
 	// If no meshes have been loaded, it's probably just an animated skeleton.
 	if (!pScene->mNumMeshes) {
 	
@@ -1362,6 +1369,46 @@ void ColladaLoader::FillMaterials( const ColladaParser& pParser, aiScene* /*pSce
 	}
 }
 
+
+#ifdef G4DAE_EXTRAS
+
+
+void ColladaLoader::StoreSceneExtras( aiScene* pScene, const ColladaParser& pParser)
+{
+    aiNode* root = pScene->mRootNode ; 
+    aiMetadata* meta = root->mMetadata ;   // every aiNode has mMetadata, so can attach  
+  
+
+
+}
+
+
+
+void ColladaLoader::BuildMaterialsExtras( ColladaParser& pParser, const Collada::Material& material , aiMaterial* mat )
+{
+    if(material.mExtra)
+    {
+        Collada::ExtraProperties::ExtraPropertiesMap& epm = material.mExtra->mProperties ; 
+        for(Collada::ExtraProperties::ExtraPropertiesMap::iterator it=epm.begin() ; it != epm.end() ; it++ )
+        {
+                
+            std::stringstream ss ; 
+            ss << "$g4dae.extra." ;
+            ss << it->first ; 
+            const char* matkey = ss.str().c_str() ;
+
+            Collada::Data& data = pParser.mDataLibrary[it->second];
+            unsigned int size = data.mValues.size();
+
+            //printf("ColladaLoader::BuildMaterialsExtras size %u matkey %s \n", size, matkey ); 
+
+            mat->AddProperty<float>( data.mValues.data(), size, matkey);
+        }
+    }
+}
+#endif
+
+
 // ------------------------------------------------------------------------------------------------
 // Constructs materials from the collada material definitions
 void ColladaLoader::BuildMaterials( ColladaParser& pParser, aiScene* /*pScene*/)
@@ -1381,6 +1428,10 @@ void ColladaLoader::BuildMaterials( ColladaParser& pParser, aiScene* /*pScene*/)
 		aiMaterial* mat = new aiMaterial;
 		aiString name( matIt->first);
 		mat->AddProperty(&name,AI_MATKEY_NAME);
+
+#ifdef G4DAE_EXTRAS
+        BuildMaterialsExtras( pParser, material, mat ); 
+#endif
 
 		// store the material
 		mMaterialIndexByName[matIt->first] = newMats.size();

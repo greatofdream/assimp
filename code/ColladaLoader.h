@@ -143,7 +143,6 @@ protected:
 	 * @param pScene target scene to store the anims
 	 */
 	void StoreAnimations( aiScene* pScene, const ColladaParser& pParser);
-
 	/** Stores all animations for the given source anim and its nested child animations
 	 * @param pScene target scene to store the anims
 	 * @param pSrcAnim the source animation to process
@@ -156,6 +155,15 @@ protected:
 	
 	/** Constructs materials from the collada material definitions */
 	void BuildMaterials( ColladaParser& pParser, aiScene* pScene);
+
+#ifdef G4DAE_EXTRAS
+    /** adds extra material properties */
+    void BuildMaterialsExtras( ColladaParser& pParser, const Collada::Material& material , aiMaterial* mat );
+
+    /** stores optical border and surface info **/
+	void StoreSceneExtras( aiScene* pScene, const ColladaParser& pParser);
+
+#endif 
 
 	/** Fill materials from the collada material definitions */
 	void FillMaterials( const ColladaParser& pParser, aiScene* pScene);

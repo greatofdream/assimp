@@ -219,17 +219,25 @@ public:
     /** read library_nodes/extra element */
     void ReadExtraSceneNode();
 
-    /** reads extra elements details optical surface properties **/ 
-    void ReadExtraOptical( Collada::ExtraOpticalType pType );
-
     /** populates OpticalSurface instances **/
     void ReadExtraOpticalSurface(Collada::OpticalSurface& pSurface);
 
-	/** Reads extra "matrix" elements and "property" elements that refer to the matrix data **/ 
+    /** populates SkinSurface instances **/	
+    void ReadExtraSkinSurface(Collada::SkinSurface& pSkinSurface);
+
+    /** populates BorderSurface instances **/	
+    void ReadExtraBorderSurface(Collada::BorderSurface& pBorderSurface);
+
+    /** Reads extra "matrix" elements and "property" elements that refer to the matrix data **/ 
     void ReadExtraProperties(Collada::ExtraProperties& pExtra, const char* element);
 
     /** Reads matrix data **/
     void ReadExtraMatrix();
+
+    void DumpExtraSkinSurface(const char* msg="ColladaParser::DumpExtraSkinSurface");
+
+    void DumpExtraBorderSurface(const char* msg="ColladaParser::DumpExtraBorderSurface");
+
 
 #endif
 
@@ -338,6 +346,12 @@ protected:
 	/** OpticalSurface library: OpticalSurface by name */
 	typedef std::map<std::string, Collada::OpticalSurface> OpticalSurfaceLibrary;
 	OpticalSurfaceLibrary mOpticalSurfaceLibrary;
+
+	typedef std::map<std::string, Collada::SkinSurface> SkinSurfaceLibrary;
+	SkinSurfaceLibrary mSkinSurfaceLibrary;
+
+	typedef std::map<std::string, Collada::BorderSurface> BorderSurfaceLibrary;
+	BorderSurfaceLibrary mBorderSurfaceLibrary;
 
 #endif
 
