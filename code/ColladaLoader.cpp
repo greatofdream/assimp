@@ -1376,7 +1376,7 @@ void ColladaLoader::FillMaterials( const ColladaParser& pParser, aiScene* /*pSce
 void ColladaLoader::StoreSceneExtras( aiScene* pScene, const ColladaParser& pParser)
 {
     aiNode* root = pScene->mRootNode ; 
-    aiMetadata* meta = root->mMetadata ;   // every aiNode has mMetadata, so can attach  
+    aiMetadata* meta = root->mMetaData ;   // every aiNode has mMetadata, so can attach  
   
 
 
@@ -1389,20 +1389,33 @@ void ColladaLoader::BuildMaterialsExtras( ColladaParser& pParser, const Collada:
     if(material.mExtra)
     {
         Collada::ExtraProperties::ExtraPropertiesMap& epm = material.mExtra->mProperties ; 
+
         for(Collada::ExtraProperties::ExtraPropertiesMap::iterator it=epm.begin() ; it != epm.end() ; it++ )
         {
-                
-            std::stringstream ss ; 
-            ss << "$g4dae.extra." ;
-            ss << it->first ; 
-            const char* matkey = ss.str().c_str() ;
+            const char* key = it->first.c_str() ; 
+            const char* val = it->second.c_str() ; 
 
-            Collada::Data& data = pParser.mDataLibrary[it->second];
-            unsigned int size = data.mValues.size();
+            const char* prefix = "g4dae_" ;
+            if(strncmp(key, prefix, strlen(prefix)) == 0)
+            {
+                aiString sval(val); 
+                mat->AddProperty( &sval, key);
+                printf("ColladaLoader::BuildMaterialsExtras AddProperty [%s] [%s] \n", val, key );
+            }
+            else
+            {
+                if(pParser.mDataLibrary.find(it->second) != pParser.mDataLibrary.end())
+                {
+                    //printf("ColladaLoader::BuildMaterialsExtras AddProperty<float> [%s] [%s] \n", val, key );
+                    Collada::Data& data = pParser.mDataLibrary[it->second];
+                    mat->AddProperty<float>( data.mValues.data(), data.mValues.size(), key);
+                }
+                else
+                {
+                    printf("ColladaLoader::BuildMaterialsExtras BAD DATA REF  key %s val %s \n", key, val ); 
+                }
+            }
 
-            //printf("ColladaLoader::BuildMaterialsExtras size %u matkey %s \n", size, matkey ); 
-
-            mat->AddProperty<float>( data.mValues.data(), size, matkey);
         }
     }
 }

@@ -215,6 +215,10 @@ protected:
 
 #ifdef G4DAE_EXTRAS
 public:
+    static const std::string g4dae_bordersurface_physvolume1 ; 
+    static const std::string g4dae_bordersurface_physvolume2 ;
+    static const std::string g4dae_skinsurface_volume ;
+
 
     /** read library_nodes/extra element */
     void ReadExtraSceneNode();
@@ -225,8 +229,14 @@ public:
     /** populates SkinSurface instances **/	
     void ReadExtraSkinSurface(Collada::SkinSurface& pSkinSurface);
 
+    /** copy SkinSurface information into fake material **/	
+    void FakeExtraSkinSurface(Collada::SkinSurface& pSkinSurface, Collada::Material& pMaterial);
+
     /** populates BorderSurface instances **/	
     void ReadExtraBorderSurface(Collada::BorderSurface& pBorderSurface);
+
+    /** copy BorderSurface information into fake material **/	
+    void FakeExtraBorderSurface(Collada::BorderSurface& pBorderSurface, Collada::Material& pMaterial);
 
     /** Reads extra "matrix" elements and "property" elements that refer to the matrix data **/ 
     void ReadExtraProperties(Collada::ExtraProperties& pExtra, const char* element);

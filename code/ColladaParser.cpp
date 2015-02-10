@@ -53,6 +53,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace Assimp;
 using namespace Assimp::Collada;
 
+
+
+#ifdef G4DAE_EXTRAS
+const std::string ColladaParser::g4dae_bordersurface_physvolume1 = "g4dae_bordersurface_physvolume1" ; 
+const std::string ColladaParser::g4dae_bordersurface_physvolume2 = "g4dae_bordersurface_physvolume2" ; 
+const std::string ColladaParser::g4dae_skinsurface_volume = "g4dae_skinsurface_volume" ;
+#endif
+
+
 // ------------------------------------------------------------------------------------------------
 // Constructor to be privately used by Importer
 ColladaParser::ColladaParser( IOSystem* pIOHandler, const std::string& pFile)
@@ -2472,11 +2481,20 @@ void ColladaParser::ReadExtraSceneNode()
             else if( IsElement("skinsurface"))     
             {
 				ReadExtraSkinSurface(mSkinSurfaceLibrary[name] = SkinSurface());
+
+                mMaterialLibrary[name] = Material() ;
+                mMaterialLibrary[name].mEffect = mEffectLibrary.begin()->first ;  // 1st effect key as placeholder 
+  
+				FakeExtraSkinSurface(mSkinSurfaceLibrary[name], mMaterialLibrary[name]);
 				continue;
             }
             else if( IsElement("bordersurface"))  
             {
 				ReadExtraBorderSurface(mBorderSurfaceLibrary[name] = BorderSurface());
+                mMaterialLibrary[name] = Material() ;
+                mMaterialLibrary[name].mEffect = mEffectLibrary.begin()->first ;  // 1st effect key as placeholder 
+
+				FakeExtraBorderSurface(mBorderSurfaceLibrary[name], mMaterialLibrary[name]);
 				continue;
             }
             else
@@ -2529,6 +2547,20 @@ void ColladaParser::DumpExtraBorderSurface(const char* msg)
 }
 
 
+
+void ColladaParser::FakeExtraSkinSurface(Collada::SkinSurface& pSkinSurface,  Collada::Material& pMaterial)
+{
+    // hijack Assimp material infrastructure to hold skin surface properties
+    if(!pMaterial.mExtra )
+        pMaterial.mExtra = new Collada::ExtraProperties();
+
+    if(pSkinSurface.mOpticalSurface)
+    {
+        std::map<std::string,std::string>& ssm = pSkinSurface.mOpticalSurface->mExtra->mProperties ;
+        pMaterial.mExtra->mProperties.insert( ssm.begin(), ssm.end() ); 
+        pMaterial.mExtra->mProperties[g4dae_skinsurface_volume] = pSkinSurface.mVolume ; 
+    }
+}
 
 
 
@@ -2587,6 +2619,22 @@ void ColladaParser::ReadExtraSkinSurface(Collada::SkinSurface& pSkinSurface)
 	}
 
 
+}
+
+
+void ColladaParser::FakeExtraBorderSurface(Collada::BorderSurface& pBorderSurface, Collada::Material& pMaterial)
+{
+    // hijack Assimp material infrastructure to hold skin surface properties
+    if(!pMaterial.mExtra )
+        pMaterial.mExtra = new Collada::ExtraProperties();
+
+    if(pBorderSurface.mOpticalSurface)
+    {
+        std::map<std::string,std::string>& bsm = pBorderSurface.mOpticalSurface->mExtra->mProperties ;
+        pMaterial.mExtra->mProperties.insert( bsm.begin(), bsm.end() ); 
+        pMaterial.mExtra->mProperties[g4dae_bordersurface_physvolume1] = pBorderSurface.mPhysVolume1 ; 
+        pMaterial.mExtra->mProperties[g4dae_bordersurface_physvolume2] = pBorderSurface.mPhysVolume2 ; 
+    }
 }
 
 void ColladaParser::ReadExtraBorderSurface(Collada::BorderSurface& pBorderSurface)
