@@ -59,6 +59,12 @@ using namespace Assimp::Collada;
 const std::string ColladaParser::g4dae_bordersurface_physvolume1 = "g4dae_bordersurface_physvolume1" ; 
 const std::string ColladaParser::g4dae_bordersurface_physvolume2 = "g4dae_bordersurface_physvolume2" ; 
 const std::string ColladaParser::g4dae_skinsurface_volume = "g4dae_skinsurface_volume" ;
+
+const std::string ColladaParser::g4dae_opticalsurface_name   = "g4dae_opticalsurface_name" ;
+const std::string ColladaParser::g4dae_opticalsurface_finish = "g4dae_opticalsurface_finish" ;
+const std::string ColladaParser::g4dae_opticalsurface_model  = "g4dae_opticalsurface_model" ;
+const std::string ColladaParser::g4dae_opticalsurface_type   = "g4dae_opticalsurface_type" ;
+const std::string ColladaParser::g4dae_opticalsurface_value  = "g4dae_opticalsurface_value" ;
 #endif
 
 
@@ -2547,6 +2553,15 @@ void ColladaParser::DumpExtraBorderSurface(const char* msg)
 }
 
 
+void ColladaParser::addCommonOpticalSurfaceProperties( Collada::ExtraProperties::ExtraPropertiesMap& pProperties, Collada::OpticalSurface& pOpticalSurface )
+{
+    pProperties[g4dae_opticalsurface_name]   = pOpticalSurface.mName ; 
+    pProperties[g4dae_opticalsurface_model]  = pOpticalSurface.mModel ; 
+    pProperties[g4dae_opticalsurface_type]   = pOpticalSurface.mType ; 
+    pProperties[g4dae_opticalsurface_finish] = pOpticalSurface.mFinish ; 
+    pProperties[g4dae_opticalsurface_value]  = pOpticalSurface.mValue ; 
+}
+
 
 void ColladaParser::FakeExtraSkinSurface(Collada::SkinSurface& pSkinSurface,  Collada::Material& pMaterial)
 {
@@ -2559,6 +2574,8 @@ void ColladaParser::FakeExtraSkinSurface(Collada::SkinSurface& pSkinSurface,  Co
         std::map<std::string,std::string>& ssm = pSkinSurface.mOpticalSurface->mExtra->mProperties ;
         pMaterial.mExtra->mProperties.insert( ssm.begin(), ssm.end() ); 
         pMaterial.mExtra->mProperties[g4dae_skinsurface_volume] = pSkinSurface.mVolume ; 
+
+        addCommonOpticalSurfaceProperties( pMaterial.mExtra->mProperties , *pSkinSurface.mOpticalSurface);
     }
 }
 
@@ -2634,6 +2651,8 @@ void ColladaParser::FakeExtraBorderSurface(Collada::BorderSurface& pBorderSurfac
         pMaterial.mExtra->mProperties.insert( bsm.begin(), bsm.end() ); 
         pMaterial.mExtra->mProperties[g4dae_bordersurface_physvolume1] = pBorderSurface.mPhysVolume1 ; 
         pMaterial.mExtra->mProperties[g4dae_bordersurface_physvolume2] = pBorderSurface.mPhysVolume2 ; 
+
+        addCommonOpticalSurfaceProperties( pMaterial.mExtra->mProperties, *pBorderSurface.mOpticalSurface);
     }
 }
 
@@ -2701,19 +2720,19 @@ void ColladaParser::ReadExtraOpticalSurface(Collada::OpticalSurface& pSurface)
 
 	int finishAtt = TestAttribute("finish");
 	if (-1 != finishAtt) 
-	    pSurface.mFinish = mReader->getAttributeValueAsInt(finishAtt);
+	    pSurface.mFinish = mReader->getAttributeValue(finishAtt);
 
 	int modelAtt = TestAttribute("model");
 	if (-1 != modelAtt) 
-	    pSurface.mModel = mReader->getAttributeValueAsInt(modelAtt);
+	    pSurface.mModel = mReader->getAttributeValue(modelAtt);
 
 	int typeAtt = TestAttribute("type");
 	if (-1 != typeAtt) 
-	    pSurface.mType = mReader->getAttributeValueAsInt(typeAtt);
+	    pSurface.mType = mReader->getAttributeValue(typeAtt);
 
 	int valueAtt = TestAttribute("value");
 	if (-1 != valueAtt) 
-	    pSurface.mValue = mReader->getAttributeValueAsFloat(valueAtt);
+	    pSurface.mValue = mReader->getAttributeValue(valueAtt);
 
     if(!pSurface.mExtra )
         pSurface.mExtra = new Collada::ExtraProperties();

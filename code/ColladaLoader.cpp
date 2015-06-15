@@ -1394,6 +1394,7 @@ void ColladaLoader::BuildMaterialsExtras( ColladaParser& pParser, const Collada:
         {
             const char* key = it->first.c_str() ; 
             const char* val = it->second.c_str() ; 
+            printf("ColladaLoader::BuildMaterialsExtras (all) AddProperty [%s] [%s] \n", val, key );
 
             const char* prefix = "g4dae_" ;
             if(strncmp(key, prefix, strlen(prefix)) == 0)

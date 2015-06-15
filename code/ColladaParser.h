@@ -217,7 +217,14 @@ protected:
 public:
     static const std::string g4dae_bordersurface_physvolume1 ; 
     static const std::string g4dae_bordersurface_physvolume2 ;
+
     static const std::string g4dae_skinsurface_volume ;
+
+    static const std::string g4dae_opticalsurface_name ;
+    static const std::string g4dae_opticalsurface_finish ;
+    static const std::string g4dae_opticalsurface_model ;
+    static const std::string g4dae_opticalsurface_type ;
+    static const std::string g4dae_opticalsurface_value ;
 
 
     /** read library_nodes/extra element */
@@ -243,6 +250,9 @@ public:
 
     /** Reads matrix data **/
     void ReadExtraMatrix();
+
+    /** adds common OpticalSurface properties (common to both BorderSurface and SkinSurface) to the properties */ 
+    void addCommonOpticalSurfaceProperties( Collada::ExtraProperties::ExtraPropertiesMap& pProperties, Collada::OpticalSurface& pOpticalSurface );
 
     void DumpExtraSkinSurface(const char* msg="ColladaParser::DumpExtraSkinSurface");
 

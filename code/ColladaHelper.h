@@ -429,24 +429,24 @@ struct OpticalSurface
 {
     std::string mName ; 
 
-    int mFinish ;
+    std::string mFinish ;
 
-    int mModel ;
+    std::string mModel ;
 
-    int mType ;
+    std::string mType ;
 
-    float mValue ;
+    std::string mValue ;
  
     ExtraProperties* mExtra ;  
 
     void Summary()
     {
-        printf("OpticalSurface::Summary %s %d %d %d %10.3f 0x%p \n", 
+        printf("OpticalSurface::Summary %s %s %s %s %s 0x%p \n", 
                mName.c_str(), 
-               mFinish, 
-               mModel, 
-               mType, 
-               mValue, 
+               mFinish.c_str(), 
+               mModel.c_str(), 
+               mType.c_str(), 
+               mValue.c_str(), 
                mExtra);
          if(mExtra) mExtra->Summary();
     }
