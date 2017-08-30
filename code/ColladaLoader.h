@@ -163,6 +163,9 @@ protected:
     /** stores optical border and surface info **/
 	void StoreSceneExtras( aiScene* pScene, const ColladaParser& pParser);
 
+    unsigned mVerbosity ; 
+    void setVerbosity(unsigned verbosity);
+
 #endif 
 
 	/** Fill materials from the collada material definitions */

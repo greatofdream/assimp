@@ -74,6 +74,9 @@ static const aiImporterDesc desc = {
 // Constructor to be privately used by Importer
 ColladaLoader::ColladaLoader()
 : noSkeletonMesh(), ignoreUpDirection(false), mNodeNameCounter()
+#ifdef G4DAE_EXTRAS
+   ,mVerbosity(1)
+#endif
 {}
 
 // ------------------------------------------------------------------------------------------------
@@ -1372,14 +1375,16 @@ void ColladaLoader::FillMaterials( const ColladaParser& pParser, aiScene* /*pSce
 
 #ifdef G4DAE_EXTRAS
 
+void ColladaLoader::setVerbosity(unsigned verbosity)
+{
+    mVerbosity = verbosity ;
+}
 
 void ColladaLoader::StoreSceneExtras( aiScene* pScene, const ColladaParser& pParser)
 {
     aiNode* root = pScene->mRootNode ; 
     aiMetadata* meta = root->mMetaData ;   // every aiNode has mMetadata, so can attach  
   
-
-
 }
 
 
@@ -1394,6 +1399,8 @@ void ColladaLoader::BuildMaterialsExtras( ColladaParser& pParser, const Collada:
         {
             const char* key = it->first.c_str() ; 
             const char* val = it->second.c_str() ; 
+
+            if(mVerbosity > 2) 
             printf("ColladaLoader::BuildMaterialsExtras (all) AddProperty [%s] [%s] \n", val, key );
 
             const char* prefix = "g4dae_" ;
@@ -1401,6 +1408,7 @@ void ColladaLoader::BuildMaterialsExtras( ColladaParser& pParser, const Collada:
             {
                 aiString sval(val); 
                 mat->AddProperty( &sval, key);
+                if(mVerbosity > 2) 
                 printf("ColladaLoader::BuildMaterialsExtras AddProperty [%s] [%s] \n", val, key );
             }
             else
