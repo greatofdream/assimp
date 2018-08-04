@@ -58,6 +58,7 @@ using namespace Assimp::Collada;
 #ifdef G4DAE_EXTRAS
 
 #include <sstream>
+const std::string ColladaParser::g4dae_material_srcidx = "g4dae_material_srcidx" ; 
 const std::string ColladaParser::g4dae_bordersurface_physvolume1 = "g4dae_bordersurface_physvolume1" ; 
 const std::string ColladaParser::g4dae_bordersurface_physvolume2 = "g4dae_bordersurface_physvolume2" ; 
 const std::string ColladaParser::g4dae_skinsurface_volume = "g4dae_skinsurface_volume" ;
@@ -846,8 +847,20 @@ void ColladaParser::ReadMaterialLibrary()
 				int attrID = GetAttribute( "id");
 				std::string id = mReader->getAttributeValue( attrID);
 
+#ifdef G4DAE_EXTRAS
+                std::stringstream ss ;  
+                ss << mMaterialLibrary.size() ; 
+                std::string sidx = ss.str();
+#endif
 				// create an entry and store it in the library under its ID
 				ReadMaterial(mMaterialLibrary[id] = Material());
+
+#ifdef G4DAE_EXTRAS
+                Collada::Material& pMaterial = mMaterialLibrary[id] ; 
+                if(!pMaterial.mExtra ) pMaterial.mExtra = new Collada::ExtraProperties();
+                pMaterial.mExtra->mProperties[g4dae_material_srcidx] = sidx ; 
+#endif
+
 			} else
 			{
 				// ignore the rest

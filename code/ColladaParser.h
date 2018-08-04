@@ -226,6 +226,9 @@ public:
     static const std::string g4dae_opticalsurface_type ;
     static const std::string g4dae_opticalsurface_value ;
 
+    static const std::string g4dae_material_srcidx ;
+
+
 
     /** read library_nodes/extra element */
     void ReadExtraSceneNode();
