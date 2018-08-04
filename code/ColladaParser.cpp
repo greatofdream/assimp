@@ -56,6 +56,8 @@ using namespace Assimp::Collada;
 
 
 #ifdef G4DAE_EXTRAS
+
+#include <sstream>
 const std::string ColladaParser::g4dae_bordersurface_physvolume1 = "g4dae_bordersurface_physvolume1" ; 
 const std::string ColladaParser::g4dae_bordersurface_physvolume2 = "g4dae_bordersurface_physvolume2" ; 
 const std::string ColladaParser::g4dae_skinsurface_volume = "g4dae_skinsurface_volume" ;
@@ -2475,16 +2477,37 @@ void ColladaParser::ReadExtraSceneNode()
                 continue ; 
             }  
 
-			std::string name ;
+			std::string name_ ;
 			int nameAtt = GetAttribute("name");
-            if(nameAtt != -1) name =  mReader->getAttributeValue(nameAtt);
+            if(nameAtt != -1) name_ =  mReader->getAttributeValue(nameAtt);
 
-            if( IsElement("opticalsurface") )
+       
+            // workaround loosing ordering in the map by stuffing this info into the name 
+
+            char typ = '?' ; 
+            if( IsElement("opticalsurface") )    typ = 'O' ; 
+            else if( IsElement("skinsurface"))   typ = 'S' ;     
+            else if( IsElement("bordersurface")) typ = 'B' ;     
+            else                                 typ = '?' ; 
+          
+            std::stringstream ss ;  
+            switch( typ )
+            {
+                 //case 'O': ss << "OS:" << std::setfill('0') << std::setw(3) << mOpticalSurfaceLibrary.size() << ":" ; break ;  
+                 case 'O':                                                                                          ; break ; 
+                 case 'S': ss << "SS:" << std::setfill('0') << std::setw(3) << mSkinSurfaceLibrary.size()    << ":" ; break ;  
+                 case 'B': ss << "BS:" << std::setfill('0') << std::setw(3) << mBorderSurfaceLibrary.size()  << ":" ; break ;
+                 default: ss << "" ;   
+            }
+            ss << name_ ; 
+            std::string name = ss.str() ;  
+
+            if( typ == 'O' )
             {
 				ReadExtraOpticalSurface(mOpticalSurfaceLibrary[name] = OpticalSurface());
 				continue;
             }     
-            else if( IsElement("skinsurface"))     
+            else if( typ == 'S' )     
             {
 				ReadExtraSkinSurface(mSkinSurfaceLibrary[name] = SkinSurface());
 
@@ -2494,7 +2517,7 @@ void ColladaParser::ReadExtraSceneNode()
 				FakeExtraSkinSurface(mSkinSurfaceLibrary[name], mMaterialLibrary[name]);
 				continue;
             }
-            else if( IsElement("bordersurface"))  
+            else if( typ == 'B' )  
             {
 				ReadExtraBorderSurface(mBorderSurfaceLibrary[name] = BorderSurface());
                 mMaterialLibrary[name] = Material() ;
