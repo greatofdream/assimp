@@ -11,8 +11,8 @@ if (MSVC)
 	set(RELEASE_LIB_DIR ReleaseLibs)
 	set(DEBUG_LIB_DIR DebugLibs)
 else()
-	set(RELEASE_LIB_DIR "")
-	set(DEBUG_LIB_DIR "")
+	set(RELEASE_LIB_DIR "lib")
+	set(DEBUG_LIB_DIR "lib")
 endif()
 
 set(GTEST_CMAKE_ARGS
@@ -31,7 +31,8 @@ endif()
 set(GTEST_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gtest")
 
 ExternalProject_Add(gtest
-	GIT_REPOSITORY https://chromium.googlesource.com/external/googletest
+	# GIT_REPOSITORY https://chromium.googlesource.com/external/googletest
+	GIT_REPOSITORY https://github.com/google/googletest.git
 	TIMEOUT 10
 	PREFIX "${GTEST_PREFIX}"
 	CMAKE_ARGS "${GTEST_CMAKE_ARGS}"
@@ -52,13 +53,26 @@ SET(GTEST_RELEASE_LIBRARIES
 	"${GTEST_LOCATION}/${RELEASE_LIB_DIR}/${LIB_PREFIX}gtest${LIB_SUFFIX}"
 	"${CMAKE_THREAD_LIBS_INIT}")
 
+# modified by zaq
+MESSAGE(STATUS "libdir:${GTEST_LIB_DIR},${GTEST_RELEASE_LIB_DIR},${GTEST_DEBUGLIB_DIR}")
+MESSAGE(STATUS "library:${LIB_PREFIX}gtest${LIB_SUFFIX},${CMAKE_THREAD_LIBS_INIT}")
+# modified end
+
 if(MSVC_VERSION EQUAL 1700)
   add_definitions(-D_VARIADIC_MAX=10)
 endif()
 
 ExternalProject_Get_Property(gtest source_dir)
+#modified by zaq
+MESSAGE(STATUS "gtestsrcdir: ${source_dir}")
+include_directories(${source_dir}/googletest/include)
+# modified end
 include_directories(${source_dir}/include)
 include_directories(${source_dir}/gtest/include)
 
 ExternalProject_Get_Property(gtest binary_dir)
+#modified by zaq
+MESSAGE(STATUS "gtestbinarydir: ${binary_dir}")
+link_directories(${binary_dir}/lib)
+# modified end
 link_directories(${binary_dir})

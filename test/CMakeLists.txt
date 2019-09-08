@@ -10,7 +10,10 @@ INCLUDE_DIRECTORIES(
 # Add the temporary output directories to the library path to make sure the
 # Assimp library can be found, even if it is not installed system-wide yet.
 LINK_DIRECTORIES( ${Assimp_BINARY_DIR} ${AssetImporter_BINARY_DIR}/lib )
-
+# modified by zaq
+LINK_DIRECTORIES(${binary_dir}/lib)
+MESSAGE(STATUS "binary_dir:${binary_dir}")
+# modified end
 SOURCE_GROUP( unit FILES
 	unit/CCompilerTest.c
 )
